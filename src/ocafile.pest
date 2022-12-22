@@ -1,0 +1,107 @@
+
+// BEGIN of GENERIC RULES
+
+// insignificant whitespace, not repeated
+ws = _{ " " | "\t" }
+
+comment = @{ "#" ~ (!NEWLINE ~ ANY)* }
+comment_line = _{ ws* ~ comment ~ NEWLINE? }
+empty_line = _{ ws* ~ NEWLINE }
+
+double_quoted_string  = @{ "\"" ~ inner ~ "\"" }
+inner   = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
+escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | "'" | unicode | NEWLINE)? }
+unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
+
+single_quoted_string = @{ "'" ~ single_quoted_inner ~ "'" }
+single_quoted_inner  = @{ (!("'" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ single_quoted_inner)? }
+
+string = ${ single_quoted_string | double_quoted_string }
+
+// a line continuation, allowing an instruction to continue onto a new line
+line_continuation = _{ "\\" ~ ws* ~ NEWLINE }
+
+// whitespace that may appear between instruction arguments
+// this allows instructions to expand past a newline if escaped
+arg_ws = _{ (ws | line_continuation ~ (comment_line | empty_line)*)+ }
+
+// like arg_ws, but where whitespace is optional
+arg_ws_maybe = _{ (ws | line_continuation ~ (comment_line | empty_line)*)* }
+
+// continues consuming input beyond a newline, if the newline is preceeded by an
+// escape (\)
+// these tokens need to be preserved in the final tree so they can be handled
+// appropraitely; pest's ignore rules aren't sufficient for our needs
+any_content = @{
+  (
+    !NEWLINE ~
+    !line_continuation ~
+    ANY
+  )+
+}
+any_breakable = ${
+  (
+    // can be any comment string (no line continuation required)
+    comment_line ~ any_breakable?
+  ) | (
+    // ... OR some piece of content, requiring a continuation EXCEPT on the
+    // final line
+    any_content ~ (line_continuation ~ any_breakable)?
+  )
+}
+
+// consumes any character until the end of the line
+any_eol = _{ (!NEWLINE ~ ANY)* }
+
+// consumes all characters until the next whitespace
+until_whitespace = _{ (!(NEWLINE | EOI | arg_ws) ~ ANY)+ }
+
+// consumes identifier characters until the next whitespace
+identifier_whitespace = _{ (!ws ~ (ASCII_ALPHANUMERIC | "_" | "-"))+ }
+
+// consumes until whitespace or = (for key in key=value pairs)
+any_equals = _{ (!(NEWLINE | ws | "=") ~ ANY)+ }
+
+// END of GENERIC RULES
+
+commands = _{
+  (
+    from |
+    add |
+    alter |
+    remove
+  ) ~ NEWLINE
+}
+
+
+from = { ^"from" ~ from_said}
+add = { ^"add" ~ ws* ~ overalys }
+alter = { ^"alter" ~ char+ }
+remove = { ^"remove" ~ char+ }
+
+char = { ASCII_ALPHANUMERIC | "." | "-" | "_" | "/" }
+
+from_said = { ws* ~ char+ }
+
+overalys = _{
+  (
+    meta |
+    label
+  )
+}
+
+label = { ^"label" ~ char+ }
+overlay_args = { ws* ~ ANY* }
+
+attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+attr_value = ${ until_whitespace }
+attr_pair = @{ attr_key ~ "=" ~ attr_value }
+attr_pairs = ${ (arg_ws ~ attr_pair?)+ }
+
+meta = { ^"meta" ~ attr_pairs+ }
+
+file = {
+  SOI ~
+  (empty_line | comment_line | commands)*
+  ~ EOI
+}
