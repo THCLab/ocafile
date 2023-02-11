@@ -70,14 +70,14 @@ commands = _{
     add |
     alter |
     remove
-  ) ~ NEWLINE
+  ) ~ NEWLINE?
 }
 
 
-from = { ^"from" ~ from_said}
-add = { ^"add" ~ ws* ~ overalys }
-alter = { ^"alter" ~ char+ }
-remove = { ^"remove" ~ char+ }
+from = { ^"from" ~ ws* ~ from_said}
+add = { ^"add" ~ arg_ws* ~ overalys }
+alter = { ^"alter " ~ char+ }
+remove = { ^"remove " ~ char+ }
 
 char = { ASCII_ALPHANUMERIC | "." | "-" | "_" | "/" }
 
@@ -86,19 +86,40 @@ from_said = { ws* ~ char+ }
 overalys = _{
   (
     meta |
-    label
+    label |
+    attribute
   )
 }
 
+attrs_key = _{ ^"attrs" ~ arg_ws}
 label = { ^"label" ~ char+ }
-overlay_args = { ws* ~ ANY* }
+meta = { ^"meta" ~ arg_ws ~ lang ~  arg_ws ~ attrs_key ~ key_pairs }
 
-attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
-attr_value = ${ until_whitespace }
-attr_pair = @{ attr_key ~ "=" ~ attr_value }
-attr_pairs = ${ (arg_ws ~ attr_pair?)+ }
 
-meta = { ^"meta" ~ attr_pairs+ }
+//overlay_args = { ws* ~ ANY* }
+attribute = { ^"attribute" ~ attr_pairs+ }
+
+key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+key_value = ${ string | char+}
+key_pair = @{ key ~ "=" ~ key_value }
+key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+}
+
+attr_type = ${ ("Text" |
+              "Numeric" |
+              "Reference" |
+              "Boolean" |
+              "Binary" |
+              "DateTime" |
+              "Array[Text]" |
+              "Array[Numeric]" |
+              "Array[Reference]" |
+              "Array[Boolean]" |
+              "Array[Binary]" |
+              "Array[DateTime]" )}
+attr_pair = @{key ~ "=" ~ attr_type}
+attr_pairs = ${ (arg_ws ~ attr_pair)+}
+
+lang = ${ ASCII_ALPHA{2} ~ ("-" ~ ASCII_ALPHA{2})? }
 
 file = {
   SOI ~

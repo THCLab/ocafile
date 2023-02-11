@@ -1,18 +1,22 @@
+use std::str::FromStr;
+
+use said::prefix::SelfAddressingPrefix;
+
 use crate::error::Error;
 use crate::ocafile_parser::*;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FromInstruction {
-    said: String, // replaced with SAID
+    pub said: SelfAddressingPrefix,
 }
 
 impl FromInstruction {
     pub(crate) fn from_record(record: Pair, index: usize) -> Result<FromInstruction, Error> {
-        let mut said = None;
+        let mut said_str = None;
 
         for field in record.into_inner() {
             match field.as_rule() {
-                Rule::from_said => said = Some(field),
+                Rule::from_said => said_str = Some(field),
                 Rule::comment => continue,
                 _ => {
                     return Err(Error::UnexpectedToken(format!(
@@ -23,14 +27,14 @@ impl FromInstruction {
             };
         }
 
-        Ok(FromInstruction {
-            said: said.unwrap().as_str().to_string(),
-        })
+        let said = SelfAddressingPrefix::from_str(said_str.unwrap().as_str()).unwrap();
+        debug!("Using oca bundle from: {:?}", said);
+        // TODO retrive OCA bundle from local repository or remote
+        Ok(FromInstruction { said })
     }
 }
 
 #[cfg(test)]
-
 mod tests {
 
     use crate::error::Error;
@@ -60,10 +64,13 @@ mod tests {
             |p| FromInstruction::from_record(p, 0),
         )?;
 
+
+        let said = SelfAddressingPrefix::from_str("E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co").unwrap();
+
         assert_eq!(
             from,
             FromInstruction {
-                said: "E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co".into()
+                said
             }
         );
 

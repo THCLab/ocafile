@@ -1,4 +1,3 @@
-use std::convert::TryFrom;
 use std::fs;
 
 mod error;
@@ -8,10 +7,10 @@ mod ocafile_parser;
 use crate::error::Error;
 use clap::Parser as ClapParser;
 use clap::Subcommand;
-use pest::Parser;
 
-use crate::instructions::*;
 use crate::ocafile_parser::*;
+#[macro_use]
+extern crate log;
 
 #[derive(clap::Parser)]
 #[command(author, version, about, long_about = None)]
@@ -36,83 +35,36 @@ enum Commands {
     },
 }
 
-struct OCAfile {
-    content: String,
-    commands: Vec<Commands>,
-}
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-enum Instruction {
-    From(FromInstruction),
-    Add(AddInstruction),
-    //    Remove(RemoveInstruction),
-    //    Alter(AlterInstruction),
-}
 
-impl From<FromInstruction> for Instruction {
-    fn from(ins: FromInstruction) -> Self {
-        Instruction::From(ins)
-    }
-}
-
-impl From<AddInstruction> for Instruction {
-    fn from(ins: AddInstruction) -> Self {
-        Instruction::Add(ins)
-    }
-}
-impl TryFrom<Pair<'_>> for Instruction {
-    type Error = crate::Error;
-
-    fn try_from(record: Pair) -> std::result::Result<Self, Self::Error> {
-        let instruction: Instruction = match record.as_rule() {
-            Rule::from => FromInstruction::from_record(record, 0)?.into(),
-            Rule::add => AddInstruction::from_record(record, 0)?.into(),
-            _ => return Err(Error::UnexpectedToken(record.to_string())),
-        };
-        Ok(instruction)
-    }
-}
+/// TODO extract OCAFILE lib to seperate crate
 
 fn main() {
+    env_logger::init();
+
     let args = Args::parse();
+
 
     match &args.command {
         Some(Commands::Build { file }) => {
-            println!("Building OCA bundle from oca file");
-            let unparsed_file = fs::read_to_string("OCAfile").expect("cannot read file");
+            info!("Building OCA bundle from oca file");
 
-            let file = OCAfileParser::parse(Rule::file, &unparsed_file)
-                .expect("unsuccessful parse")
-                .next()
-                .unwrap();
+            let unparsed_file = match file {
+                Some(file) => fs::read_to_string(file).expect("Can't read file"),
+                None => fs::read_to_string("OCAfile").expect("Can't read file"),
+            };
 
-            for line in file.into_inner() {
-                if let Rule::EOI = line.as_rule() {
-                    continue;
-                }
-                if let Rule::comment = line.as_rule() {
-                    continue;
-                }
-                if let Rule::empty_line = line.as_rule() {
-                    continue;
-                }
+            let mut oca_bundle = generate_ocabundle(unparsed_file);
+            let serialized_oca = oca_bundle.generate_bundle();
+            //save to file
+            fs::write("OCA.bundle", serialized_oca).expect("Unable to write file");
 
-                let mut instruction = Instruction::try_from(line).unwrap();
-                match &mut instruction {
-                    Instruction::From(ref mut from) => {
-                        println!("Instruction From");
-                    }
-                    Instruction::Add(ref mut add) => {
-                        println!("Instruction Add");
-                    }
-                }
-            }
         }
-        Some(Commands::Publish { repository }) => {
-            println!("Publish OCA bundle to repository")
+        Some(Commands::Publish { repository: _ }) => {
+            info!("Publish OCA bundle to repository")
         }
-        Some(Commands::Sign { scid }) => {
-            println!("Sign OCA bundle byc SCID")
+        Some(Commands::Sign { scid: _ }) => {
+            info!("Sign OCA bundle byc SCID")
         }
         None => {}
     }
@@ -125,3 +77,4 @@ fn main() {
 // ocafile publish
 // ocafile fetch SAI
 // ocafile inspect
+
