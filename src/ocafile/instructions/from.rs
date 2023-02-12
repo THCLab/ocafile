@@ -1,9 +1,7 @@
 use std::str::FromStr;
-
+use log::debug;
 use said::prefix::SelfAddressingPrefix;
-
-use crate::error::Error;
-use crate::ocafile_parser::*;
+use crate::ocafile::{Rule, error::Error, Pair};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FromInstruction {
@@ -36,9 +34,7 @@ impl FromInstruction {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::error::Error;
-    use crate::ocafile_parser::*;
+    use crate::ocafile::{Rule, OCAfileParser, error::Error, Pair};
     use pest::Parser;
     use pretty_assertions::assert_eq;
 
@@ -64,15 +60,10 @@ mod tests {
             |p| FromInstruction::from_record(p, 0),
         )?;
 
+        let said =
+            SelfAddressingPrefix::from_str("E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co").unwrap();
 
-        let said = SelfAddressingPrefix::from_str("E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co").unwrap();
-
-        assert_eq!(
-            from,
-            FromInstruction {
-                said
-            }
-        );
+        assert_eq!(from, FromInstruction { said });
 
         Ok(())
     }

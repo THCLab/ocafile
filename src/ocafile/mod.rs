@@ -1,10 +1,12 @@
+mod instructions;
+mod error;
+
+use self::instructions::{from::FromInstruction, add::AddInstruction};
+use crate::ocafile::error::Error;
+use core::convert::From;
+use log::debug;
 use oca_rs::state::oca::OCABox;
 use pest::Parser;
-
-use crate::{
-    error::Error,
-    instructions::{AddInstruction, FromInstruction},
-};
 
 #[derive(pest_derive::Parser)]
 #[grammar = "ocafile.pest"]
@@ -33,8 +35,7 @@ impl_instruction!(FromInstruction, Instruction::From);
 impl_instruction!(AddInstruction, Instruction::Add);
 
 impl TryFrom<Pair<'_>> for Instruction {
-    type Error = crate::Error;
-
+    type Error = Error;
     fn try_from(record: Pair) -> std::result::Result<Self, Self::Error> {
         let instruction: Instruction = match record.as_rule() {
             Rule::from => FromInstruction::from_record(record, 0)?.into(),
@@ -45,14 +46,14 @@ impl TryFrom<Pair<'_>> for Instruction {
     }
 }
 
-// Serialzie OCAfile into OCA bundle
-pub fn generate_ocabundle(unparsed_file: String) -> OCABox {
+ /// Parse OCAfile from string and generate OCABox
+ pub fn parse_from_string(unparsed_file: String) -> OCABox {
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
         .expect("unsuccessful parse")
         .next()
         .unwrap();
 
-    let mut oca_bundle = OCABox::new();
+    let mut oca_box = OCABox::new();
 
     for line in file.into_inner() {
         if let Rule::EOI = line.as_rule() {
@@ -83,11 +84,10 @@ pub fn generate_ocabundle(unparsed_file: String) -> OCABox {
             Instruction::Add(ref mut instruction) => {
                 for attribute in instruction.attributes.iter() {
                     debug!("Adding attribute to bundle: {:?}", attribute);
-                    oca_bundle.add_attribute(attribute.clone());
+                    oca_box.add_attribute(attribute.clone());
                 }
             }
         }
     }
-    debug!("OCABUNDLE: {:?}", oca_bundle.attributes);
-    return oca_bundle;
+    return oca_box;
 }

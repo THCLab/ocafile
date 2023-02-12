@@ -1,14 +1,9 @@
 use std::fs;
 
-mod error;
-mod instructions;
-mod ocafile_parser;
-
-use crate::error::Error;
 use clap::Parser as ClapParser;
 use clap::Subcommand;
+use ocafile::ocafile::parse_from_string;
 
-use crate::ocafile_parser::*;
 #[macro_use]
 extern crate log;
 
@@ -54,7 +49,7 @@ fn main() {
                 None => fs::read_to_string("OCAfile").expect("Can't read file"),
             };
 
-            let mut oca_bundle = generate_ocabundle(unparsed_file);
+            let mut oca_bundle = parse_from_string(unparsed_file);
             let serialized_oca = oca_bundle.generate_bundle();
             //save to file
             fs::write("OCA.bundle", serialized_oca).expect("Unable to write file");

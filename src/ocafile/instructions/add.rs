@@ -1,21 +1,15 @@
+use log::{debug, info};
 use oca_rs::state::attribute::{Attribute, AttributeType};
 
-use crate::error::Error;
-use crate::ocafile_parser::*;
+use crate::ocafile::{error::Error, Rule, Pair};
 use std::str::FromStr;
-
-// enum for ocaobject
-enum OCAObject {
-    CaptureBase,
-    Overlay,
-}
 
 pub struct AddInstruction {
     pub attributes: Vec<Attribute>, // what is it is not attribute? check what options we have and which instruction we need to handle
 }
 
 impl AddInstruction {
-    pub(crate) fn from_record(record: Pair, index: usize) -> Result<AddInstruction, Error> {
+    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<AddInstruction, Error> {
         let mut add_instruction = AddInstruction {
             attributes: Vec::new(),
         };
@@ -103,8 +97,9 @@ impl AddInstruction {
 
 #[cfg(test)]
 mod tests {
+    use crate::ocafile::OCAfileParser;
+
     use super::*;
-    use crate::ocafile_parser::OCAfileParser;
     use pest::Parser;
 
     #[test]

@@ -7,6 +7,15 @@ license = "EUPL-1.2"
 readme = "README.md"
 description = "Rust implementation of OCAFile"
 
+
+[lib]
+name = "ocafile"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ocatool"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4.0.29", features = ["derive"] }
 pest = "2.5.1"
