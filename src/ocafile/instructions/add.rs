@@ -1,18 +1,19 @@
 use log::{debug, info};
-use oca_rs::state::attribute::{Attribute, AttributeType};
+use oca_rs::state::attribute::AttributeType;
 
-use crate::ocafile::{error::Error, Rule, Pair};
-use std::str::FromStr;
+use crate::ocafile::{
+    ast::{Command, Instruction, InstructionData, Object, ObjectKind},
+    error::Error,
+    Pair, Rule,
+};
+use std::{collections::HashMap, str::FromStr};
 
-pub struct AddInstruction {
-    pub attributes: Vec<Attribute>, // what is it is not attribute? check what options we have and which instruction we need to handle
-}
+pub struct AddInstruction {}
 
 impl AddInstruction {
-    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<AddInstruction, Error> {
-        let mut add_instruction = AddInstruction {
-            attributes: Vec::new(),
-        };
+    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Instruction, Error> {
+        let mut attributes = HashMap::new();
+        let mut object_kind = None;
 
         debug!("{}", record);
         for object in record.into_inner() {
@@ -36,13 +37,20 @@ impl AddInstruction {
                     }
                 }
                 Rule::attribute => {
+                    object_kind = Some(ObjectKind::CaptureBase);
                     for attr_pairs in object.into_inner() {
                         match attr_pairs.as_rule() {
                             Rule::attr_pairs => {
                                 info!("attribute: {:?}", attr_pairs);
                                 for attr in attr_pairs.into_inner() {
                                     debug!("Parsing attribute {:?}", attr);
-                                    add_instruction.extract_attribute(attr);
+                                    if let Some((key, value)) =
+                                        AddInstruction::extract_attribute(attr)
+                                    {
+                                        attributes.insert(key, value);
+                                    } else {
+                                        debug!("Skipping attribute");
+                                    }
                                 }
                             }
                             _ => {
@@ -64,23 +72,29 @@ impl AddInstruction {
                 }
             };
         }
+        let object = InstructionData::Object(Object::new(object_kind.unwrap(), attributes));
 
-        Ok(add_instruction)
+        let instruction = Instruction {
+            command: Command::Add,
+            data: object,
+        };
+
+        Ok(instruction)
     }
 
-    fn extract_attribute(&mut self, attr_pair: Pair) -> () {
-        let mut attribute = None;
+    fn extract_attribute(attr_pair: Pair) -> Option<(String, String)> {
+        let mut key = String::new();
+        let mut value = String::new();
+
         for item in attr_pair.into_inner() {
             match item.as_rule() {
                 Rule::key => {
-                    attribute = Some(Attribute::new(item.as_str().to_string()));
+                    key = item.as_str().to_string();
                 }
                 Rule::attr_type => match AttributeType::from_str(&item.as_span().as_str()) {
                     Ok(attr_type) => {
                         debug!("Attribute type: {:?}", attr_type);
-                        if let Some(attribute) = attribute.as_mut() {
-                            attribute.set_attribute_type(attr_type);
-                        }
+                        value = attr_type.to_string();
                     }
                     Err(e) => {
                         panic!("Invalid attribute type {:?}", e);
@@ -91,7 +105,7 @@ impl AddInstruction {
                 }
             }
         }
-        self.attributes.push(attribute.unwrap());
+        Some((key, value))
     }
 }
 
@@ -103,26 +117,50 @@ mod tests {
     use pest::Parser;
 
     #[test]
-    fn test_add_instruction() {
-        let ocafile = "ADD ATTRIBUTE documentNumber=Text documentType=Numeric";
+    fn test_add_attribute_instruction() {
+        // test vector with example instruction and boolean if they should be valid or not
+        let instructions = vec![
+            ("ADD ATTRIBUTE documentNumber=Text documentType=Numeric", true),
+            ("ADD ATTRIBUTE documentNumber=Text documentType=Numeric name=Text list=Array[Numeric]", true),
+            ("ADD ATTRIBUTE name=Text", false),
+            ("ADD ATTR name=Text", false),
+            ("ADD attribute name=Text", true),
+            ("add attribute name=Text", true),
+            ("add attribute name=Random", false),
+        ];
 
-        let instruction = OCAfileParser::parse(Rule::add, ocafile)
-            .expect("unsuccessful parse")
-            .next()
-            .unwrap();
+        // loop over instructions to check if the are meeting the requirements
+        for (instruction, is_valid) in instructions {
+            let parsed_instruction = OCAfileParser::parse(Rule::add, instruction);
 
-        let add_instruction = AddInstruction::from_record(instruction, 0).unwrap();
-        assert_eq!(add_instruction.attributes.len(), 2);
-        assert_eq!(add_instruction.attributes[0].name, "documentNumber");
-        match add_instruction.attributes[0].attribute_type {
-            Some(AttributeType::Text) => {
-                assert!(true);
+            match parsed_instruction {
+                Ok(mut parsed_instruction) => {
+                    let instruction = parsed_instruction.next();
+                    assert!(instruction.is_some());
+                    match instruction {
+                        Some(instruction) => {
+                            let instruction = AddInstruction::from_record(instruction, 0).unwrap();
+                            println!("{:?}", instruction);
+
+                            assert_eq!(instruction.command, Command::Add);
+                            match instruction.data {
+                                InstructionData::Object(object) => {
+                                    assert_eq!(object.kind, ObjectKind::CaptureBase);
+                                    assert!(object.attributes.len() > 0);
+                                }
+                                _ => panic!("Invalid instruction data"),
+                            }
+                        }
+                        None => {
+                            assert!(!is_valid, "Instruction is not valid");
+                        }
+                    }
+                }
+                Err(e) => {
+                    assert!(!is_valid, "Instruction should be invalid");
+                    println!("Error: {:?}", e);
+                }
             }
-            Some(AttributeType::Numeric) => {
-                assert!(true);
-            }
-            _ => panic!("Invalid attribute type"),
         }
-
     }
 }

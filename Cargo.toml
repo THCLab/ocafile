@@ -26,3 +26,5 @@ oca-rs = { path = "./../oca-rust/" }
 said = "0.2.1"
 log = "0.4.0"
 env_logger = "0.10.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
+sled = "0.34.7"

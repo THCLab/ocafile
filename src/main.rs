@@ -3,6 +3,7 @@ use std::fs;
 use clap::Parser as ClapParser;
 use clap::Subcommand;
 use ocafile::ocafile::parse_from_string;
+use serde_json;
 
 #[macro_use]
 extern crate log;
@@ -28,6 +29,7 @@ enum Commands {
         #[arg(short, long)]
         scid: String,
     },
+
 }
 
 
@@ -49,10 +51,13 @@ fn main() {
                 None => fs::read_to_string("OCAfile").expect("Can't read file"),
             };
 
-            let mut oca_bundle = parse_from_string(unparsed_file);
-            let serialized_oca = oca_bundle.generate_bundle();
+            let mut oca = parse_from_string(unparsed_file);
+            let oca_bundle = oca.generate_bundle();
+            let serialized_oca = serde_json::to_string_pretty(&oca_bundle).unwrap();
+
+            let said = oca_bundle.said.to_string();
             //save to file
-            fs::write("OCA.bundle", serialized_oca).expect("Unable to write file");
+            fs::write(said + ".ocabundle", serialized_oca).expect("Unable to write file");
 
         }
         Some(Commands::Publish { repository: _ }) => {
@@ -72,4 +77,3 @@ fn main() {
 // ocafile publish
 // ocafile fetch SAI
 // ocafile inspect
-

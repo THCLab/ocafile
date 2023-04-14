@@ -1,15 +1,17 @@
-use std::str::FromStr;
+use crate::ocafile::{
+    ast::{Command, Instruction, InstructionData},
+    error::Error,
+    Pair, Rule,
+};
 use log::debug;
 use said::prefix::SelfAddressingPrefix;
-use crate::ocafile::{Rule, error::Error, Pair};
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct FromInstruction {
-    pub said: SelfAddressingPrefix,
-}
+pub struct FromInstruction {}
 
 impl FromInstruction {
-    pub(crate) fn from_record(record: Pair, index: usize) -> Result<FromInstruction, Error> {
+    pub(crate) fn from_record(record: Pair, index: usize) -> Result<Instruction, Error> {
         let mut said_str = None;
 
         for field in record.into_inner() {
@@ -27,14 +29,16 @@ impl FromInstruction {
 
         let said = SelfAddressingPrefix::from_str(said_str.unwrap().as_str()).unwrap();
         debug!("Using oca bundle from: {:?}", said);
-        // TODO retrive OCA bundle from local repository or remote
-        Ok(FromInstruction { said })
+        Ok(Instruction {
+            command: Command::From,
+            data: InstructionData::From(said.to_str()),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::ocafile::{Rule, OCAfileParser, error::Error, Pair};
+    use crate::ocafile::{error::Error, OCAfileParser, Pair, Rule};
     use pest::Parser;
     use pretty_assertions::assert_eq;
 
@@ -53,17 +57,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn from_said() -> Result<(), Error> {
+    fn test_from_instruction() -> Result<(), Error> {
+
+        // test vector with example instruction and boolean if they should be valid or not
+        let instructions = vec![
+                ("FROM E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", true),
+                ("from E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", true),
+                ("from error", false),
+                ("from https://humancolossus.org/E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", false),
+            ];
+
+        for (instruction, is_valid) in instructions {
+            let result = parse_direct(instruction, Rule::from, |p| {
+                FromInstruction::from_record(p, 0)
+            });
+
+            match result {
+                Ok(_) => {
+                    let said =
+                    SelfAddressingPrefix::from_str(instruction).unwrap();
+
+                    assert_eq!(from, FromInstruction { said });
+                }
+                Err(e) => {
+                    assert!(!is_valid, "Instruction should be invalid")
+                }
+            }
+
+        }
         let from = parse_direct(
             "from E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co",
             Rule::from,
             |p| FromInstruction::from_record(p, 0),
         )?;
-
-        let said =
-            SelfAddressingPrefix::from_str("E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co").unwrap();
-
-        assert_eq!(from, FromInstruction { said });
 
         Ok(())
     }

@@ -1,12 +1,14 @@
 mod instructions;
 mod error;
+mod ast;
 
-use self::instructions::{from::FromInstruction, add::AddInstruction};
+use self::{instructions::{from::FromInstruction, add::AddInstruction}, ast::OCAfileAst};
 use crate::ocafile::error::Error;
 use core::convert::From;
 use log::debug;
 use oca_rs::state::oca::OCABox;
 use pest::Parser;
+
 
 #[derive(pest_derive::Parser)]
 #[grammar = "ocafile.pest"]
@@ -34,10 +36,10 @@ macro_rules! impl_instruction {
 impl_instruction!(FromInstruction, Instruction::From);
 impl_instruction!(AddInstruction, Instruction::Add);
 
-impl TryFrom<Pair<'_>> for Instruction {
+impl TryFrom<Pair<'_>> for ast::Instruction {
     type Error = Error;
     fn try_from(record: Pair) -> std::result::Result<Self, Self::Error> {
-        let instruction: Instruction = match record.as_rule() {
+        let instruction: ast::Instruction = match record.as_rule() {
             Rule::from => FromInstruction::from_record(record, 0)?.into(),
             Rule::add => AddInstruction::from_record(record, 0)?.into(),
             _ => return Err(Error::UnexpectedToken(record.to_string())),
@@ -52,6 +54,11 @@ impl TryFrom<Pair<'_>> for Instruction {
         .expect("unsuccessful parse")
         .next()
         .unwrap();
+
+// OCABOX is just one of the representation we should use AST here
+    let mut oca_ast = OCAfileAst::new();
+
+
 
     let mut oca_box = OCABox::new();
 
@@ -82,12 +89,21 @@ impl TryFrom<Pair<'_>> for Instruction {
                 // load new OCABundle from repository and create instance object of it
             }
             Instruction::Add(ref mut instruction) => {
-                for attribute in instruction.attributes.iter() {
-                    debug!("Adding attribute to bundle: {:?}", attribute);
-                    oca_box.add_attribute(attribute.clone());
-                }
+                // Convert instruction AST into OCABox
+
+                // for attribute in instruction.attributes.iter() {
+                //     debug!("Adding attribute to bundle: {:?}", attribute);
+                //     oca_box.add_attribute(attribute.clone());
+                // }
             }
         }
+
+
+        // Each instruction should generate hash of the OCA bundle at given point and all it's oca objects
+        // this would be used in OCA repository for matching OCA bundles and searching for them
+        // generate said of the ocabundle and store in local db
+        // let said = oca_box.get_bundle_said();
+
     }
     return oca_box;
 }
