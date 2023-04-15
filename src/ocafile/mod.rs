@@ -2,7 +2,7 @@ mod instructions;
 mod error;
 mod ast;
 
-use self::{instructions::{from::FromInstruction, add::AddInstruction}, ast::{OCAAst, Command}};
+use self::{instructions::{from::FromInstruction, add::AddInstruction}, ast::{OCAAst, CommandType, Command}};
 use crate::ocafile::error::Error;
 use core::convert::From;
 use log::debug;

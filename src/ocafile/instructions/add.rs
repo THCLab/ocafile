@@ -2,7 +2,7 @@ use log::{debug, info};
 use oca_rs::state::attribute::AttributeType;
 
 use crate::ocafile::{
-    ast::{CaptureBaseContent, Command, ObjectKind, ObjectContent, NestedValue},
+    ast::{CaptureBaseContent, CommandType, ObjectKind, ObjectContent, NestedValue, Command},
     error::Error,
     Pair, Rule,
 };
@@ -78,13 +78,11 @@ impl AddInstruction {
         //     data: object,
         // };
 
-        Ok(Command::Add(
-            ObjectKind::CaptureBase,
-            ObjectContent::CaptureBase(CaptureBaseContent {
-                attributes: None,
-                properties: None,
-            }),
-        ))
+        Ok(Command {
+            kind: CommandType::Add,
+            object_kind: ObjectKind::CaptureBase,
+            content: ObjectContent::CaptureBase((CaptureBaseContent { attributes: None, properties: None })).into()
+        })
     }
 
     fn extract_attribute(attr_pair: Pair) -> Option<(String, String)> {

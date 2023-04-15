@@ -1,5 +1,5 @@
 use crate::ocafile::{
-    ast::{Command},
+    ast::{CommandType, Command, ObjectKind},
     error::Error,
     Pair, Rule,
 };
@@ -29,8 +29,11 @@ impl FromInstruction {
 
         let said = SelfAddressingPrefix::from_str(said_str.unwrap().as_str()).unwrap();
         debug!("Using oca bundle from: {:?}", said);
-        Ok(Command::From(said.to_str()))
-
+        Ok(Command {
+            kind: CommandType::From,
+            object_kind: ObjectKind::CaptureBase,
+            content: None,
+        })
 
     }
 }
