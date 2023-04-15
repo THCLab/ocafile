@@ -4,29 +4,7 @@
 
 AST:
 
-OCAFILE
- |
- - Instructions
-   |
-   - Instruction
-      |
-      - Command
-        |
-         - Add
-         - Remove
-         - Modify
-         - From
-      - Data
-        |
-        - From
-        - Object
-          |
-          - kind
-            |
-            - CaptureBase
-            - Overlay1
-          - attributes
-
+See: ast-example.json for reference
 
 Nodes:
 
