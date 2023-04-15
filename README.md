@@ -1,20 +1,9 @@
+# Workspaces
 
+## ocaast
 
+OCA AST lib allowing to generate and work with OCA bundle AST
 
+## ocafile
 
-AST:
-
-See: ast-example.json for reference
-
-Nodes:
-
-CaptureBase
-Overlays
-  - meta
-  - ...
-
-Operations:
- - ADD
- - REMOVE
- - ALTER
- - FROM
+Lib and bin tool to deal with OCAFILE, parsing and creating ocafile

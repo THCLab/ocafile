@@ -52,12 +52,13 @@ fn main() {
             };
 
             let mut oca = parse_from_string(unparsed_file);
-            let oca_bundle = oca.generate_bundle();
-            let serialized_oca = serde_json::to_string_pretty(&oca_bundle).unwrap();
+            println!("{:#?}", oca);
+            //let oca_bundle = oca.generate_bundle();
+            //let serialized_oca = serde_json::to_string_pretty(&oca_bundle).unwrap();
 
-            let said = oca_bundle.said.to_string();
+            //let said = oca_bundle.said.to_string();
             //save to file
-            fs::write(said + ".ocabundle", serialized_oca).expect("Unable to write file");
+            //fs::write(said + ".ocabundle", serialized_oca).expect("Unable to write file");
 
         }
         Some(Commands::Publish { repository: _ }) => {

@@ -1,5 +1,5 @@
+use ocaast::{CommandType, Command, ObjectKind};
 use crate::ocafile::{
-    ast::{CommandType, Command, ObjectKind},
     error::Error,
     Pair, Rule,
 };

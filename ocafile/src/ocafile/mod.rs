@@ -1,11 +1,11 @@
 mod instructions;
 mod error;
-mod ast;
 
-use self::{instructions::{from::FromInstruction, add::AddInstruction}, ast::{OCAAst, CommandType, Command}};
+use self::{instructions::{from::FromInstruction, add::AddInstruction}};
+use log::debug;
+use ocaast::{OCAAst, Command, CommandType};
 use crate::ocafile::error::Error;
 use core::convert::From;
-use log::debug;
 use oca_rs::state::oca::OCABox;
 use pest::Parser;
 
@@ -33,13 +33,18 @@ macro_rules! impl_instruction {
     };
 }
 
+pub trait TryFromPair {
+    type Error;
+    fn try_from_pair(pair: Pair<'_>) -> Result<Command, Self::Error>;
+}
+
 impl_instruction!(FromInstruction, Instruction::From);
 impl_instruction!(AddInstruction, Instruction::Add);
 
-impl TryFrom<Pair<'_>> for ast::Command {
+impl TryFromPair for Command {
     type Error = Error;
-    fn try_from(record: Pair) -> std::result::Result<Self, Self::Error> {
-        let instruction: ast::Command = match record.as_rule() {
+    fn try_from_pair(record: Pair) -> std::result::Result<Self, Self::Error> {
+        let instruction: Command = match record.as_rule() {
             Rule::from => FromInstruction::from_record(record, 0)?.into(),
             Rule::add => AddInstruction::from_record(record, 0)?.into(),
             _ => return Err(Error::UnexpectedToken(record.to_string())),
@@ -49,18 +54,14 @@ impl TryFrom<Pair<'_>> for ast::Command {
 }
 
  /// Parse OCAfile from string and generate OCABox
- pub fn parse_from_string(unparsed_file: String) -> OCABox {
+ pub fn parse_from_string(unparsed_file: String) -> OCAAst {
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
         .expect("unsuccessful parse")
         .next()
         .unwrap();
 
-// OCABOX is just one of the representation we should use AST here
     let mut oca_ast = OCAAst::new();
 
-
-
-    let mut oca_box = OCABox::new();
 
     for line in file.into_inner() {
         if let Rule::EOI = line.as_rule() {
@@ -73,30 +74,32 @@ impl TryFrom<Pair<'_>> for ast::Command {
             continue;
         }
 
-        let mut instruction = match Command::try_from(line) {
-            Ok(instruction) => instruction,
+        let mut command = match Command::try_from_pair(line) {
+            Ok(command) => command,
             Err(e) => {
                 panic!("Error parsing instruction: {}", e);
             }
         };
 
-        // match &mut instruction {
-        //     Command::From(ref mut from) => {
-        //         debug!(
-        //             "NOT IMPLEMENTED YET: Searching OCA bundle from available sources: {:?}",
-        //             from.said
-        //         );
-        //         // load new OCABundle from repository and create instance object of it
-        //     }
-        //     Command::Add(ref mut instruction) => {
-        //         // Convert instruction AST into OCABox
+        match &mut command.kind {
+            CommandType::From => {
+                debug!(
+                    "NOT IMPLEMENTED YET: Searching OCA bundle from available sources: {:?}",
+                    command.content
+                );
+                // load new OCABundle from repository and create instance object of it
+            }
+            CommandType::Add => {
+                // Convert instruction AST into OCABox
 
-        //         // for attribute in instruction.attributes.iter() {
-        //         //     debug!("Adding attribute to bundle: {:?}", attribute);
-        //         //     oca_box.add_attribute(attribute.clone());
-        //         // }
-        //     }
-        // }
+                // for attribute in instruction.attributes.iter() {
+                //     debug!("Adding attribute to bundle: {:?}", attribute);
+                //     oca_box.add_attribute(attribute.clone());
+                // }
+            }
+            CommandType::Remove => todo!(),
+            CommandType::Modify => todo!(),
+        }
 
 
         // Each instruction should generate hash of the OCA bundle at given point and all it's oca objects
@@ -105,5 +108,5 @@ impl TryFrom<Pair<'_>> for ast::Command {
         // let said = oca_box.get_bundle_said();
 
     }
-    return oca_box;
+    return oca_ast;
 }

@@ -1,26 +1,23 @@
-use serde::{
-    ser::{SerializeStruct, SerializeMap},
-    Serialize,
-};
+use serde::Serialize;
 
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) struct OCAAst {
-    pub(crate) version: String,
-    pub(crate) commands: Vec<Command>,
+pub struct OCAAst {
+    pub version: String,
+    pub commands: Vec<Command>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) struct Command {
+pub struct Command {
     #[serde(rename = "type")]
-    pub(crate) kind: CommandType,
-    pub(crate) object_kind: ObjectKind,
-    pub(crate) content: Option<ObjectContent>,
+    pub kind: CommandType,
+    pub object_kind: ObjectKind,
+    pub content: Option<ObjectContent>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) enum CommandType {
+pub enum CommandType {
     Add,
     Remove,
     Modify,
@@ -28,19 +25,19 @@ pub(crate) enum CommandType {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) enum ObjectKind {
+pub enum ObjectKind {
     CaptureBase,
     Overlay(OverlayType),
 }
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(untagged)]
-pub(crate) enum ObjectContent {
+pub enum ObjectContent {
     CaptureBase(CaptureBaseContent),
     Overlay(OverlayContent),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) enum AttributeType {
+pub enum AttributeType {
     Boolean,
     #[serde(rename = "Array[Boolean]")]
     ArrayBoolean,
@@ -62,7 +59,7 @@ pub(crate) enum AttributeType {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) enum OverlayType {
+pub enum OverlayType {
     Label,
     Information,
     Encoding,
@@ -85,21 +82,21 @@ pub(crate) enum OverlayType {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) struct CaptureBaseContent {
-    pub(crate) attributes: Option<HashMap<String, NestedValue>>,
-    pub(crate) properties: Option<HashMap<String, NestedValue>>,
+pub struct CaptureBaseContent {
+    pub attributes: Option<HashMap<String, NestedValue>>,
+    pub properties: Option<HashMap<String, NestedValue>>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub(crate) struct OverlayContent {
-    pub(crate) capture_base_id: String,
-    pub(crate) properties: HashMap<String, NestedValue>,
-    pub(crate) body: HashMap<String, NestedValue>, // maybe we should have body and attributes
+pub struct OverlayContent {
+    pub capture_base_id: Option<String>, // TODO do we need it in AST?
+    pub properties: Option<HashMap<String, NestedValue>>,
+    pub body: Option<HashMap<String, NestedValue>>, // maybe we should have body and attributes
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(untagged)]
-pub(crate) enum NestedValue {
+pub enum NestedValue {
     Value(String),
     Object(HashMap<String, NestedValue>),
     Reference(String),
@@ -112,9 +109,9 @@ impl Content for CaptureBaseContent {}
 impl Content for OverlayContent {}
 
 impl OCAAst {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         OCAAst {
-            version:  String::from("1.0"),
+            version: String::from("1.0"),
             commands: Vec::new(),
         }
     }
@@ -141,9 +138,7 @@ mod tests {
                 attributes: Some(attributes),
                 properties: Some(properties),
             })),
-
         };
-
 
         let mut ocaast = OCAAst::new();
         ocaast.commands.push(command);

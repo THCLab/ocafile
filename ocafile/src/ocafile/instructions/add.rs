@@ -1,10 +1,9 @@
+use crate::ocafile::{error::Error, Pair, Rule};
 use log::{debug, info};
-use oca_rs::state::attribute::AttributeType;
-
-use crate::ocafile::{
-    ast::{CaptureBaseContent, CommandType, ObjectKind, ObjectContent, NestedValue, Command},
-    error::Error,
-    Pair, Rule,
+use oca_rs::state::{attribute::AttributeType, oca::overlay::Overlay};
+use ocaast::{
+    CaptureBaseContent, Command, CommandType, NestedValue, ObjectContent, ObjectKind,
+    OverlayContent,
 };
 use std::{collections::HashMap, str::FromStr};
 
@@ -14,18 +13,30 @@ impl AddInstruction {
     pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
         // let mut nested_object = None;
         let mut object_kind = None;
+        let kind = CommandType::Add;
+        let mut content = None;
 
         debug!("{}", record);
         for object in record.into_inner() {
             match object.as_rule() {
                 Rule::meta => {
+                    let mut properties: HashMap<String, NestedValue> = HashMap::new();
+                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Meta));
                     for attrs in object.into_inner() {
                         match attrs.as_rule() {
                             Rule::key_pairs => {
                                 println!("Meta attr ----> {:?}", attrs);
+                                properties.insert(
+                                    "key".to_string(),
+                                    NestedValue::Value(attrs.as_str().to_string()),
+                                );
                             }
                             Rule::lang => {
-                                debug!("Parsing language: {:?}", attrs.as_rule())
+                                debug!("Parsing language: {:?}", attrs.as_rule());
+                                properties.insert(
+                                    "lang".to_string(),
+                                    NestedValue::Value(attrs.as_str().to_string()),
+                                );
                             }
                             _ => {
                                 return Err(Error::UnexpectedToken(format!(
@@ -38,6 +49,7 @@ impl AddInstruction {
                 }
                 Rule::attribute => {
                     object_kind = Some(ObjectKind::CaptureBase);
+                    let mut attributes: HashMap<String, NestedValue> = HashMap::new();
                     for attr_pairs in object.into_inner() {
                         match attr_pairs.as_rule() {
                             Rule::attr_pairs => {
@@ -47,7 +59,8 @@ impl AddInstruction {
                                     if let Some((key, value)) =
                                         AddInstruction::extract_attribute(attr)
                                     {
-                                        //nested_object.attributes.insert(key, value);
+                                        // TODO find out how to parse nested objects
+                                        attributes.insert(key, NestedValue::Value(value));
                                     } else {
                                         debug!("Skipping attribute");
                                     }
@@ -61,6 +74,10 @@ impl AddInstruction {
                             }
                         }
                     }
+                    content = Some(CaptureBaseContent {
+                        properties: None,
+                        attributes: Some(attributes),
+                    });
                 }
                 Rule::comment => continue,
                 // Rule::classification => continue,
@@ -79,9 +96,9 @@ impl AddInstruction {
         // };
 
         Ok(Command {
-            kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: ObjectContent::CaptureBase((CaptureBaseContent { attributes: None, properties: None })).into()
+            kind: kind,
+            object_kind: object_kind.unwrap(),
+            content: Some(ObjectContent::CaptureBase(content.unwrap())),
         })
     }
 
@@ -143,7 +160,7 @@ mod tests {
                     match instruction {
                         Some(instruction) => {
                             let instruction = AddInstruction::from_record(instruction, 0).unwrap();
-                            println!("{:?}", instruction);
+                            println!("Parsed instruction: {:?}", instruction);
 
                             // assert_eq!(instruction.command, Command::Add);
                             // match instruction.data {
