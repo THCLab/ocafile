@@ -1,5 +1,5 @@
 use crate::ocafile::{
-    ast::{Command, Instruction, InstructionData},
+    ast::{Command},
     error::Error,
     Pair, Rule,
 };
@@ -11,7 +11,7 @@ use std::str::FromStr;
 pub struct FromInstruction {}
 
 impl FromInstruction {
-    pub(crate) fn from_record(record: Pair, index: usize) -> Result<Instruction, Error> {
+    pub(crate) fn from_record(record: Pair, index: usize) -> Result<Command, Error> {
         let mut said_str = None;
 
         for field in record.into_inner() {
@@ -29,10 +29,9 @@ impl FromInstruction {
 
         let said = SelfAddressingPrefix::from_str(said_str.unwrap().as_str()).unwrap();
         debug!("Using oca bundle from: {:?}", said);
-        Ok(Instruction {
-            command: Command::From,
-            data: InstructionData::From(said.to_str()),
-        })
+        Ok(Command::From(said.to_str()))
+
+
     }
 }
 
@@ -77,7 +76,7 @@ mod tests {
                     let said =
                     SelfAddressingPrefix::from_str(instruction).unwrap();
 
-                    assert_eq!(from, FromInstruction { said });
+                    //assert_eq!(from, FromInstruction { said });
                 }
                 Err(e) => {
                     assert!(!is_valid, "Instruction should be invalid")

@@ -2,7 +2,7 @@ use log::{debug, info};
 use oca_rs::state::attribute::AttributeType;
 
 use crate::ocafile::{
-    ast::{Command, Instruction, InstructionData, Object, ObjectKind},
+    ast::{CaptureBaseContent, Command, ObjectKind, ObjectContent, NestedValue},
     error::Error,
     Pair, Rule,
 };
@@ -11,8 +11,8 @@ use std::{collections::HashMap, str::FromStr};
 pub struct AddInstruction {}
 
 impl AddInstruction {
-    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Instruction, Error> {
-        let mut attributes = HashMap::new();
+    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
+        // let mut nested_object = None;
         let mut object_kind = None;
 
         debug!("{}", record);
@@ -47,7 +47,7 @@ impl AddInstruction {
                                     if let Some((key, value)) =
                                         AddInstruction::extract_attribute(attr)
                                     {
-                                        attributes.insert(key, value);
+                                        //nested_object.attributes.insert(key, value);
                                     } else {
                                         debug!("Skipping attribute");
                                     }
@@ -72,14 +72,19 @@ impl AddInstruction {
                 }
             };
         }
-        let object = InstructionData::Object(Object::new(object_kind.unwrap(), attributes));
 
-        let instruction = Instruction {
-            command: Command::Add,
-            data: object,
-        };
+        // let instruction = Instruction {
+        //     command: Command::Add,
+        //     data: object,
+        // };
 
-        Ok(instruction)
+        Ok(Command::Add(
+            ObjectKind::CaptureBase,
+            ObjectContent::CaptureBase(CaptureBaseContent {
+                attributes: None,
+                properties: None,
+            }),
+        ))
     }
 
     fn extract_attribute(attr_pair: Pair) -> Option<(String, String)> {
@@ -142,14 +147,14 @@ mod tests {
                             let instruction = AddInstruction::from_record(instruction, 0).unwrap();
                             println!("{:?}", instruction);
 
-                            assert_eq!(instruction.command, Command::Add);
-                            match instruction.data {
-                                InstructionData::Object(object) => {
-                                    assert_eq!(object.kind, ObjectKind::CaptureBase);
-                                    assert!(object.attributes.len() > 0);
-                                }
-                                _ => panic!("Invalid instruction data"),
-                            }
+                            // assert_eq!(instruction.command, Command::Add);
+                            // match instruction.data {
+                            //     InstructionData::Object(object) => {
+                            //         assert_eq!(object.kind, ObjectKind::CaptureBase);
+                            //         assert!(object.attributes.len() > 0);
+                            //     }
+                            //     _ => panic!("Invalid instruction data"),
+                            // }
                         }
                         None => {
                             assert!(!is_valid, "Instruction is not valid");

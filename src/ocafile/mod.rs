@@ -2,7 +2,7 @@ mod instructions;
 mod error;
 mod ast;
 
-use self::{instructions::{from::FromInstruction, add::AddInstruction}, ast::OCAfileAst};
+use self::{instructions::{from::FromInstruction, add::AddInstruction}, ast::{OCAAst, Command}};
 use crate::ocafile::error::Error;
 use core::convert::From;
 use log::debug;
@@ -36,10 +36,10 @@ macro_rules! impl_instruction {
 impl_instruction!(FromInstruction, Instruction::From);
 impl_instruction!(AddInstruction, Instruction::Add);
 
-impl TryFrom<Pair<'_>> for ast::Instruction {
+impl TryFrom<Pair<'_>> for ast::Command {
     type Error = Error;
     fn try_from(record: Pair) -> std::result::Result<Self, Self::Error> {
-        let instruction: ast::Instruction = match record.as_rule() {
+        let instruction: ast::Command = match record.as_rule() {
             Rule::from => FromInstruction::from_record(record, 0)?.into(),
             Rule::add => AddInstruction::from_record(record, 0)?.into(),
             _ => return Err(Error::UnexpectedToken(record.to_string())),
@@ -56,7 +56,7 @@ impl TryFrom<Pair<'_>> for ast::Instruction {
         .unwrap();
 
 // OCABOX is just one of the representation we should use AST here
-    let mut oca_ast = OCAfileAst::new();
+    let mut oca_ast = OCAAst::new();
 
 
 
@@ -73,30 +73,30 @@ impl TryFrom<Pair<'_>> for ast::Instruction {
             continue;
         }
 
-        let mut instruction = match Instruction::try_from(line) {
+        let mut instruction = match Command::try_from(line) {
             Ok(instruction) => instruction,
             Err(e) => {
                 panic!("Error parsing instruction: {}", e);
             }
         };
 
-        match &mut instruction {
-            Instruction::From(ref mut from) => {
-                debug!(
-                    "NOT IMPLEMENTED YET: Searching OCA bundle from available sources: {:?}",
-                    from.said
-                );
-                // load new OCABundle from repository and create instance object of it
-            }
-            Instruction::Add(ref mut instruction) => {
-                // Convert instruction AST into OCABox
+        // match &mut instruction {
+        //     Command::From(ref mut from) => {
+        //         debug!(
+        //             "NOT IMPLEMENTED YET: Searching OCA bundle from available sources: {:?}",
+        //             from.said
+        //         );
+        //         // load new OCABundle from repository and create instance object of it
+        //     }
+        //     Command::Add(ref mut instruction) => {
+        //         // Convert instruction AST into OCABox
 
-                // for attribute in instruction.attributes.iter() {
-                //     debug!("Adding attribute to bundle: {:?}", attribute);
-                //     oca_box.add_attribute(attribute.clone());
-                // }
-            }
-        }
+        //         // for attribute in instruction.attributes.iter() {
+        //         //     debug!("Adding attribute to bundle: {:?}", attribute);
+        //         //     oca_box.add_attribute(attribute.clone());
+        //         // }
+        //     }
+        // }
 
 
         // Each instruction should generate hash of the OCA bundle at given point and all it's oca objects
