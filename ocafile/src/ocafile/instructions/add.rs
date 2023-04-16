@@ -16,7 +16,7 @@ impl AddInstruction {
         let kind = CommandType::Add;
         let mut content = None;
 
-        debug!("{}", record);
+        debug!("Into the record: {:?}", record);
         for object in record.into_inner() {
             match object.as_rule() {
                 Rule::meta => {
@@ -25,7 +25,7 @@ impl AddInstruction {
                     for attrs in object.into_inner() {
                         match attrs.as_rule() {
                             Rule::key_pairs => {
-                                println!("Meta attr ----> {:?}", attrs);
+                               // println!("Meta attr ----> {:?}", attrs);
                                 properties.insert(
                                     "key".to_string(),
                                     NestedValue::Value(attrs.as_str().to_string()),
@@ -46,6 +46,11 @@ impl AddInstruction {
                             }
                         }
                     }
+                    content = Some(ObjectContent::Overlay(OverlayContent {
+                        properties: Some(properties),
+                        capture_base_id: None,
+                        body: None,
+                    }));
                 }
                 Rule::attribute => {
                     object_kind = Some(ObjectKind::CaptureBase);
@@ -59,6 +64,8 @@ impl AddInstruction {
                                     if let Some((key, value)) =
                                         AddInstruction::extract_attribute(attr)
                                     {
+                                        debug!("Parsed attribute: {:?} = {:?}", key, value);
+
                                         // TODO find out how to parse nested objects
                                         attributes.insert(key, NestedValue::Value(value));
                                     } else {
@@ -74,10 +81,10 @@ impl AddInstruction {
                             }
                         }
                     }
-                    content = Some(CaptureBaseContent {
+                    content = Some(ObjectContent::CaptureBase(CaptureBaseContent {
                         properties: None,
                         attributes: Some(attributes),
-                    });
+                    }));
                 }
                 Rule::comment => continue,
                 // Rule::classification => continue,
@@ -98,7 +105,7 @@ impl AddInstruction {
         Ok(Command {
             kind: kind,
             object_kind: object_kind.unwrap(),
-            content: Some(ObjectContent::CaptureBase(content.unwrap())),
+            content: content
         })
     }
 
@@ -162,14 +169,14 @@ mod tests {
                             let instruction = AddInstruction::from_record(instruction, 0).unwrap();
                             println!("Parsed instruction: {:?}", instruction);
 
-                            // assert_eq!(instruction.command, Command::Add);
-                            // match instruction.data {
-                            //     InstructionData::Object(object) => {
-                            //         assert_eq!(object.kind, ObjectKind::CaptureBase);
-                            //         assert!(object.attributes.len() > 0);
-                            //     }
-                            //     _ => panic!("Invalid instruction data"),
-                            // }
+                            assert_eq!(instruction.kind, CommandType::Add);
+                            assert_eq!(instruction.object_kind, ObjectKind::CaptureBase);
+                            match instruction.content {
+                                Some(ObjectContent::CaptureBase(content)) => {
+                                    assert!(content.attributes.unwrap().len() > 0);
+                                }
+                                _ => panic!("Invalid instruction data"),
+                            }
                         }
                         None => {
                             assert!(!is_valid, "Instruction is not valid");

@@ -1,4 +1,5 @@
-use serde::Serialize;
+use serde::{Serialize, Serializer};
+use strum_macros::Display;
 
 use std::collections::HashMap;
 
@@ -24,7 +25,7 @@ pub enum CommandType {
     From,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq)]
 pub enum ObjectKind {
     CaptureBase,
     Overlay(OverlayType),
@@ -58,7 +59,7 @@ pub enum AttributeType {
     ArrayReference,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Display)]
 pub enum OverlayType {
     Label,
     Information,
@@ -113,6 +114,20 @@ impl OCAAst {
         OCAAst {
             version: String::from("1.0"),
             commands: Vec::new(),
+        }
+    }
+}
+
+impl Serialize for ObjectKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            ObjectKind::CaptureBase => serializer.serialize_str("CaptureBase"),
+            ObjectKind::Overlay(overlay_type) => {
+                serializer.serialize_str(overlay_type.to_string().as_str())
+            }
         }
     }
 }

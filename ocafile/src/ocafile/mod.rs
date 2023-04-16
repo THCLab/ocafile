@@ -74,32 +74,34 @@ impl TryFromPair for Command {
             continue;
         }
 
-        let mut command = match Command::try_from_pair(line) {
-            Ok(command) => command,
+        let command = match Command::try_from_pair(line) {
+            Ok(command) => {
+                oca_ast.commands.push(command);
+            },
             Err(e) => {
                 panic!("Error parsing instruction: {}", e);
             }
         };
 
-        match &mut command.kind {
-            CommandType::From => {
-                debug!(
-                    "NOT IMPLEMENTED YET: Searching OCA bundle from available sources: {:?}",
-                    command.content
-                );
-                // load new OCABundle from repository and create instance object of it
-            }
-            CommandType::Add => {
-                // Convert instruction AST into OCABox
+        // match &mut command.kind {
+        //     CommandType::From => {
+        //         debug!(
+        //             "NOT IMPLEMENTED YET: Searching OCA bundle from available sources: {:?}",
+        //             command.content
+        //         );
+        //         // load new OCABundle from repository and create instance object of it
+        //     }
+        //     CommandType::Add => {
+        //         // Convert instruction AST into OCABox
 
-                // for attribute in instruction.attributes.iter() {
-                //     debug!("Adding attribute to bundle: {:?}", attribute);
-                //     oca_box.add_attribute(attribute.clone());
-                // }
-            }
-            CommandType::Remove => todo!(),
-            CommandType::Modify => todo!(),
-        }
+        //         // for attribute in instruction.attributes.iter() {
+        //         //     debug!("Adding attribute to bundle: {:?}", attribute);
+        //         //     oca_box.add_attribute(attribute.clone());
+        //         // }
+        //     }
+        //     CommandType::Remove => todo!(),
+        //     CommandType::Modify => todo!(),
+        // }
 
 
         // Each instruction should generate hash of the OCA bundle at given point and all it's oca objects

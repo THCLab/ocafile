@@ -51,14 +51,15 @@ fn main() {
                 None => fs::read_to_string("OCAfile").expect("Can't read file"),
             };
 
-            let mut oca = parse_from_string(unparsed_file);
-            println!("{:#?}", oca);
+            let oca = parse_from_string(unparsed_file);
+            //println!("{:#?}", oca);
+            let serialzied_ast = serde_json::to_string_pretty(&oca).unwrap();
             //let oca_bundle = oca.generate_bundle();
             //let serialized_oca = serde_json::to_string_pretty(&oca_bundle).unwrap();
 
             //let said = oca_bundle.said.to_string();
             //save to file
-            //fs::write(said + ".ocabundle", serialized_oca).expect("Unable to write file");
+            fs::write("output".to_string() + ".ocabundle", serialzied_ast).expect("Unable to write file");
 
         }
         Some(Commands::Publish { repository: _ }) => {
