@@ -88,15 +88,29 @@ oca_object = _{
     meta |
     label |
     attribute |
-    classification
+    classification |
+    information |
+    unit |
+    character_encoding |
+    character_encoding_props |
+    format |
+    flagged_attrs
   )
 }
 
 attrs_key = _{ ^"attrs" ~ arg_ws}
-label = { ^"label" ~ char+ }
-meta = { ^"meta" ~ arg_ws ~ lang ~  arg_ws ~ attrs_key ~ key_pairs }
+props_key = _{ ^"props" ~ arg_ws}
+label = { ^"label" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ key_pairs }
+meta = { ^"meta" ~ arg_ws ~ lang ~  arg_ws ~ props_key ~ key_pairs }
+information = {^"information" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ key_pairs}
+character_encoding = {^"character_encoding" ~ arg_ws ~ attrs_key ~ key_pairs}
+character_encoding_props = {^"character_encoding" ~ arg_ws ~ props_key ~ key_pairs}
+format = {^"format" ~ arg_ws ~ attrs_key? ~ key_pairs}
+unit = {^"unit" ~ arg_ws ~ unit_system ~ arg_ws ~ attrs_key ~ key_pairs}
+
+flagged_attrs = {^"flagged_attributes" ~ arg_ws ~ list_value}
 classification = { ^"classification" ~ arg_ws ~ classification_value}
-classification_value = {any_eol}
+classification_value = { string | char+}
 
 //overlay_args = { ws* ~ ANY* }
 attribute = { ^"attribute" ~ attr_pairs+ }
@@ -104,7 +118,9 @@ attribute = { ^"attribute" ~ attr_pairs+ }
 key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 key_value = ${ string | char+}
 key_pair = @{ key ~ "=" ~ key_value }
-key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+}
+key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
+list_value = ${ (arg_ws? ~ key_value ~ arg_ws?)+ }
+unit_system = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 
 attr_type = ${ ("Text" |
               "Numeric" |

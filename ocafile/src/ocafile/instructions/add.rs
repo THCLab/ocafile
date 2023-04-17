@@ -20,26 +20,33 @@ impl AddInstruction {
                 Rule::meta => {
                     let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Meta));
-                    for attrs in object.into_inner() {
-                        match attrs.as_rule() {
+                    for attr_pairs in object.into_inner() {
+                        match attr_pairs.as_rule() {
                             Rule::key_pairs => {
                                 // println!("Meta attr ----> {:?}", attrs);
-                                properties.insert(
-                                    "key".to_string(),
-                                    NestedValue::Value(attrs.as_str().to_string()),
-                                );
+                                for attr in attr_pairs.into_inner() {
+                                    debug!("Parsing meta attribute {:?}", attr);
+                                    if let Some((key, value)) =
+                                        AddInstruction::extract_attribute(attr)
+                                    {
+                                        debug!("Parsed meta attribute: {:?} = {:?}", key, value);
+                                        properties.insert(key, NestedValue::Value(value));
+                                    } else {
+                                        debug!("Skipping meta attribute");
+                                    }
+                                }
                             }
                             Rule::lang => {
-                                debug!("Parsing language: {:?}", attrs.as_rule());
+                                debug!("Parsing language: {:?}", attr_pairs.as_rule());
                                 properties.insert(
                                     "lang".to_string(),
-                                    NestedValue::Value(attrs.as_str().to_string()),
+                                    NestedValue::Value(attr_pairs.as_str().to_string()),
                                 );
                             }
                             _ => {
                                 return Err(Error::UnexpectedToken(format!(
                                     "Invalid attribute in meta overlay {:?}",
-                                    attrs.as_rule()
+                                    attr_pairs.as_rule()
                                 )))
                             }
                         }
@@ -100,6 +107,27 @@ impl AddInstruction {
                     });
 
                 }
+                Rule::information => {
+                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Information))
+                },
+                Rule::character_encoding => {
+                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::CharacterEncoding))
+                },
+                Rule::character_encoding_props => {
+                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::CharacterEncoding))
+                },
+                Rule::label => {
+                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Label))
+                },
+                Rule::unit => {
+                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Unit))
+                },
+                Rule::format => {
+                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Format))
+                },
+                Rule::flagged_attrs => {
+                    object_kind = Some(ObjectKind::CaptureBase)
+                },
                 _ => {
                     return Err(Error::UnexpectedToken(format!(
                         "Overlay: unexpected token {:?}",
@@ -108,11 +136,6 @@ impl AddInstruction {
                 }
             };
         }
-
-        // let instruction = Instruction {
-        //     command: Command::Add,
-        //     data: object,
-        // };
 
         Ok(Command {
             kind: kind,
@@ -125,6 +148,7 @@ impl AddInstruction {
         let mut key = String::new();
         let mut value = String::new();
 
+        debug!("Extract the attribute: {:?}", attr_pair);
         for item in attr_pair.into_inner() {
             match item.as_rule() {
                 Rule::key => {
@@ -138,6 +162,9 @@ impl AddInstruction {
                     Err(e) => {
                         panic!("Invalid attribute type {:?}", e);
                     }
+                },
+                Rule::key_value => {
+                    value = item.as_str().to_string();
                 },
                 _ => {
                     panic!("Invalid attribute in {:?}", item.as_rule());
