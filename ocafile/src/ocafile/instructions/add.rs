@@ -1,11 +1,9 @@
 use crate::ocafile::{error::Error, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
-use oca_rs::state::{attribute::AttributeType, oca::overlay::Overlay};
-use ocaast::{
-    Command, CommandType, NestedValue, Content, ObjectKind,
-};
-use std::{collections::HashMap, str::FromStr};
+use oca_rs::state::{attribute::AttributeType};
+use ocaast::{Command, CommandType, Content, NestedValue, ObjectKind};
+use std::str::FromStr;
 
 pub struct AddInstruction {}
 
@@ -25,7 +23,7 @@ impl AddInstruction {
                     for attrs in object.into_inner() {
                         match attrs.as_rule() {
                             Rule::key_pairs => {
-                               // println!("Meta attr ----> {:?}", attrs);
+                                // println!("Meta attr ----> {:?}", attrs);
                                 properties.insert(
                                     "key".to_string(),
                                     NestedValue::Value(attrs.as_str().to_string()),
@@ -104,7 +102,7 @@ impl AddInstruction {
         Ok(Command {
             kind: kind,
             object_kind: object_kind.unwrap(),
-            content: content
+            content: content,
         })
     }
 

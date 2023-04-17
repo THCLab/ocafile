@@ -14,6 +14,7 @@ pub struct Command {
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub object_kind: ObjectKind,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<Content>,
 }
 
@@ -78,7 +79,9 @@ pub enum OverlayType {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Content {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedValue>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<IndexMap<String, NestedValue>>,
 }
 
