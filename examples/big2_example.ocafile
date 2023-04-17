@@ -1,0 +1,103 @@
+# syntax=1.0.0 (DSL)
+# escape=\
+
+ADD CLASSIFICATION GICS:45102010
+
+ADD ATTRIBUTE documentNumber Text
+ADD INFORMATION en ATTR documentNumber "Unique identification number of the document."
+
+ADD ATTRIBUTE fullName Text
+
+
+FROM OCA_BUNDLE123
+
+ADD ATTRIBUTE height Numeric # SAID
+ADD ATTRIBUTE documentType Array[Text]
+ADD ATTRIBUTE issuingState Text
+ADD ATTRIBUTE photoImage Binary
+ADD ATTRIBUTE sex Text
+
+ADD CHARACTER_ENCODING ATTR photoImage base64
+ADD FLAGGED_ATTRIBUTES documentNumber fullName dateOfBirth photoImage
+
+ADD CHARACTER_ENCODING DEFAULT utf-8 # SAID OCA BUNDLE
+
+
+# default always ATTR
+
+ADD FORMAT dateOfBirth YYYY-MM-DD
+ADD FORMAT documentNumber [A-Z0-9]{9}
+ADD FORMAT photoImage image/jpeg
+ADD FORMAT sex [A-Z]{1}
+
+# ADD INFORMATION <lang> attr <attribute_name> <value>
+# For each <lang> overlay would be created
+
+ADD INFORMATION en ATTR documentType "The word for \"passport\" in the language of the issuing State or organization."
+ADD INFORMATION en ATTR dateOfBirth "Holder’s date of birth as recorded by the issuing State or organization."
+ADD INFORMATION en ATTR fullName "Full name of the passport holder."
+ADD INFORMATION en ATTR height "Recorded height of the passport holder."
+ADD INFORMATION en ATTR issuingState "Name of the State or organization responsible for issuing the passport."
+ADD INFORMATION en ATTR photoImage "Portrait image of the passport holder."
+ADD INFORMATION en ATTR sex "Sex of the passport holder."
+
+
+
+
+# ADD LABEL <lang> ATTR <attribute_name> <value>
+# ADD LABEL <lang> CATEGORY <category_name> <category_label>
+# <lang> - iso country code
+
+ADD LABEL en ATTR documentNumber "Passport Number"
+ADD LABEL en ATTR documentType "Document"
+ADD LABEL en ATTR dateOfBirth "Date of birth"
+ADD LABEL en ATTR fullName "Full name"
+ADD LABEL en ATTR height "Height"
+ADD LABEL en ATTR issuingState "Issuing State of organization (in full)"
+ADD LABEL en ATTR photoImage "Portrait image"
+ADD LABEL en ATTR sex "Sex"
+
+ADD LABEL en META description "Opis"
+
+
+
+ADD UNIT si ATTR height cm
+
+
+
+ADD LABEL en ATTR dateOfBirth Date of birth
+ADD LABEL en CATEGORY CAT1 "Mandatory header"
+
+ADD UNIT_MAPPING METRIC_SYSTEM si CODE_TABLE  E3YDLacdI1GSGWhHywzrb5B0hOL/9TYWBsUkXC8fA4EY ATTR blood_glucose mg/dL
+
+
+ADD LABEL en cos "wartość"
+
+ADD LABEL en CATEGORY _cat-1_ "Mandatory header"
+ADD LABEL en CATEGORY _cat-2_ "Mandatory personal data elements"
+
+# ADD META <lang> <key> <value>
+
+ADD META en name "Digital Passport"
+ADD META en description "An example of a Digital Passport schema"
+ADD META en affiliation "The Government of Antarctica"
+
+# ADD STANDARD <attr_name> <value>
+ADD STANDARD dateOfBirth "ISO 8601"
+
+# ADD CARDINALITY <attr_name> <value>
+ADD CARDINALITY documentType "1-2"
+
+# ADD CONDITIONAL <attr_name> <conditional_expression>
+ADD CONDITIONAL ATTR height "${0}=='PM'"
+ADD CONDITIONAL DEPENDENCIES height [documentType]
+
+# ADD CONFORMANCE <attr_name> <value>
+# default is optional so only those which are listed are mandatory. if attribute already exist value can be altered
+ADD CONFORMANCE dateOfBirth M
+ADD CONFORMANCE documentNumber M
+
+
+# ADD ENTRY_CODE <attr> <value>
+ADD ENTRY_CODE documentType ["PE", "PM"]
+ADD ENTRY_CODE issuingState "EGyWgdQR9dW_I5oHlHBMoO9AA_eMeb2p3XzcCRCBbKCM"
