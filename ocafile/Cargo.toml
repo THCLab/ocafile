@@ -30,3 +30,4 @@ env_logger = "0.10.0"
 serde_json = { version = "1.0", features = ["preserve_order"] }
 sled = "0.34.7"
 serde = { version = "1.0", features = ["derive"] }
+indexmap = { version = "1.9.3", features = ["serde"]}

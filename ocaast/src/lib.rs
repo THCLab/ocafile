@@ -14,7 +14,7 @@ pub struct Command {
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub object_kind: ObjectKind,
-    pub content: Option<ObjectContent>,
+    pub content: Option<Content>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -29,12 +29,6 @@ pub enum CommandType {
 pub enum ObjectKind {
     CaptureBase,
     Overlay(OverlayType),
-}
-#[derive(Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum ObjectContent {
-    CaptureBase(CaptureBaseContent),
-    Overlay(OverlayContent),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -83,15 +77,9 @@ pub enum OverlayType {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub struct CaptureBaseContent {
+pub struct Content {
     pub attributes: Option<IndexMap<String, NestedValue>>,
     pub properties: Option<IndexMap<String, NestedValue>>,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-pub struct OverlayContent { // maybe we could unify it with CaptureBaseContent?
-    pub properties: Option<IndexMap<String, NestedValue>>,
-    pub body: Option<IndexMap<String, NestedValue>>, // maybe we should have body and attributes
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -102,11 +90,6 @@ pub enum NestedValue {
     Reference(String),
     Array(Vec<NestedValue>),
 }
-
-pub(crate) trait Content {}
-
-impl Content for CaptureBaseContent {}
-impl Content for OverlayContent {}
 
 impl OCAAst {
     pub fn new() -> Self {
@@ -148,10 +131,10 @@ mod tests {
         let command = Command {
             kind: CommandType::Add,
             object_kind: ObjectKind::CaptureBase,
-            content: Some(ObjectContent::CaptureBase(CaptureBaseContent {
+            content: Some(Content {
                 attributes: Some(attributes),
                 properties: Some(properties),
-            })),
+            }),
         };
 
         let mut ocaast = OCAAst::new();

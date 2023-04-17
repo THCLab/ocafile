@@ -1,9 +1,9 @@
 use crate::ocafile::{error::Error, Pair, Rule};
+use indexmap::IndexMap;
 use log::{debug, info};
 use oca_rs::state::{attribute::AttributeType, oca::overlay::Overlay};
 use ocaast::{
-    CaptureBaseContent, Command, CommandType, NestedValue, ObjectContent, ObjectKind,
-    OverlayContent,
+    Command, CommandType, NestedValue, Content, ObjectKind,
 };
 use std::{collections::HashMap, str::FromStr};
 
@@ -20,7 +20,7 @@ impl AddInstruction {
         for object in record.into_inner() {
             match object.as_rule() {
                 Rule::meta => {
-                    let mut properties: HashMap<String, NestedValue> = HashMap::new();
+                    let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Meta));
                     for attrs in object.into_inner() {
                         match attrs.as_rule() {
@@ -46,15 +46,14 @@ impl AddInstruction {
                             }
                         }
                     }
-                    content = Some(ObjectContent::Overlay(OverlayContent {
+                    content = Some(Content {
                         properties: Some(properties),
-                        capture_base_id: None,
-                        body: None,
-                    }));
+                        attributes: None,
+                    });
                 }
                 Rule::attribute => {
                     object_kind = Some(ObjectKind::CaptureBase);
-                    let mut attributes: HashMap<String, NestedValue> = HashMap::new();
+                    let mut attributes: IndexMap<String, NestedValue> = IndexMap::new();
                     for attr_pairs in object.into_inner() {
                         match attr_pairs.as_rule() {
                             Rule::attr_pairs => {
@@ -81,10 +80,10 @@ impl AddInstruction {
                             }
                         }
                     }
-                    content = Some(ObjectContent::CaptureBase(CaptureBaseContent {
+                    content = Some(Content {
                         properties: None,
                         attributes: Some(attributes),
-                    }));
+                    });
                 }
                 Rule::comment => continue,
                 // Rule::classification => continue,
@@ -172,10 +171,13 @@ mod tests {
                             assert_eq!(instruction.kind, CommandType::Add);
                             assert_eq!(instruction.object_kind, ObjectKind::CaptureBase);
                             match instruction.content {
-                                Some(ObjectContent::CaptureBase(content)) => {
+                                Some(content) => {
+                                    assert!(content.attributes.is_some());
                                     assert!(content.attributes.unwrap().len() > 0);
                                 }
-                                _ => panic!("Invalid instruction data"),
+                                None => {
+                                    assert!(!is_valid, "Instruction is not valid");
+                                }
                             }
                         }
                         None => {
