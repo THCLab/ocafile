@@ -68,33 +68,35 @@ commands = _{
   (
     from |
     add |
-    alter |
+    modify |
     remove
   ) ~ NEWLINE?
 }
 
 
 from = { ^"from" ~ ws* ~ from_said}
-add = { ^"add" ~ arg_ws* ~ overalys }
-alter = { ^"alter " ~ char+ }
-remove = { ^"remove " ~ char+ }
+add = { ^"add" ~ arg_ws* ~ oca_object }
+modify = { ^"modify" ~ char+ }
+remove = { ^"remove" ~ char+ }
 
 char = { ASCII_ALPHANUMERIC | "." | "-" | "_" | "/" }
 
 from_said = { ws* ~ char+ }
 
-overalys = _{
+oca_object = _{
   (
     meta |
     label |
-    attribute
+    attribute |
+    classification
   )
 }
 
 attrs_key = _{ ^"attrs" ~ arg_ws}
 label = { ^"label" ~ char+ }
 meta = { ^"meta" ~ arg_ws ~ lang ~  arg_ws ~ attrs_key ~ key_pairs }
-
+classification = { ^"classification" ~ arg_ws ~ classification_value}
+classification_value = {any_eol}
 
 //overlay_args = { ws* ~ ANY* }
 attribute = { ^"attribute" ~ attr_pairs+ }

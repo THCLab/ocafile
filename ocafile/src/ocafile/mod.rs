@@ -74,7 +74,7 @@ impl TryFromPair for Command {
             continue;
         }
 
-        let command = match Command::try_from_pair(line) {
+        let _command = match Command::try_from_pair(line) {
             Ok(command) => {
                 oca_ast.commands.push(command);
             },
@@ -82,33 +82,6 @@ impl TryFromPair for Command {
                 panic!("Error parsing instruction: {}", e);
             }
         };
-
-        // match &mut command.kind {
-        //     CommandType::From => {
-        //         debug!(
-        //             "NOT IMPLEMENTED YET: Searching OCA bundle from available sources: {:?}",
-        //             command.content
-        //         );
-        //         // load new OCABundle from repository and create instance object of it
-        //     }
-        //     CommandType::Add => {
-        //         // Convert instruction AST into OCABox
-
-        //         // for attribute in instruction.attributes.iter() {
-        //         //     debug!("Adding attribute to bundle: {:?}", attribute);
-        //         //     oca_box.add_attribute(attribute.clone());
-        //         // }
-        //     }
-        //     CommandType::Remove => todo!(),
-        //     CommandType::Modify => todo!(),
-        // }
-
-
-        // Each instruction should generate hash of the OCA bundle at given point and all it's oca objects
-        // this would be used in OCA repository for matching OCA bundles and searching for them
-        // generate said of the ocabundle and store in local db
-        // let said = oca_box.get_bundle_said();
-
     }
     return oca_ast;
 }

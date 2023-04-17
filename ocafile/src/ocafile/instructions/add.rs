@@ -84,7 +84,22 @@ impl AddInstruction {
                     });
                 }
                 Rule::comment => continue,
-                // Rule::classification => continue,
+                Rule::classification => {
+                    object_kind = Some(ObjectKind::CaptureBase);
+                    let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
+                    let classification = object.into_inner().next().unwrap();
+                    print!("Classification: {:?}", classification.as_rule());
+                    properties.insert(
+                        "classification".to_string(),
+                        NestedValue::Value(classification.as_str().to_string()),
+                    );
+
+                    content = Some(Content {
+                        properties: Some(properties),
+                        attributes: None,
+                    });
+
+                }
                 _ => {
                     return Err(Error::UnexpectedToken(format!(
                         "Overlay: unexpected token {:?}",
