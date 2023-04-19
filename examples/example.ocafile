@@ -1,0 +1,18 @@
+FROM E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co
+
+ADD CLASSIFICATION GICS:45102010
+
+ADD ATTRIBUTE documentNumber=Text documentType=Text
+#ADD INFORMATION en ATTR documentNumber "Unique identification number of the document."
+
+ADD ATTRIBUTE fullName=Text
+ADD META en ATTRS name=Robert last_name=Kowalski \
+ description=nowt
+ADD META pl ATTRS description="Opis modelu danych"
+ADD META en ATTRS name=cos
+
+# ascasd
+# asdasd
+
+
+ADD META pl ATTRS name=Paszport

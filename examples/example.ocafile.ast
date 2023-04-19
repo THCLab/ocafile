@@ -1,0 +1,348 @@
+{
+  "version": "1.0",
+  "commands": [
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "properties": {
+          "classification": "\"GICS:45102010\""
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "attributes": {
+          "documentNumber": "Text"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "documentNumber": "\"Unique identification number of the document.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "attributes": {
+          "fullName": "Text"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "attributes": {
+          "height": "Numeric"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "attributes": {
+          "documentType": "Array[Text]"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "attributes": {
+          "issuingState": "Text"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "attributes": {
+          "photoImage": "Binary"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase",
+      "content": {
+        "attributes": {
+          "sex": "Text"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CharacterEncoding",
+      "content": {
+        "attributes": {
+          "photoImage": "base64"
+        },
+        "properties": {}
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "CaptureBase"
+    },
+    {
+      "type": "Add",
+      "object_kind": "CharacterEncoding",
+      "content": {
+        "attributes": {},
+        "properties": {
+          "default_encoding": "utf-8"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Format",
+      "content": {
+        "attributes": {
+          "dateOfBirth": "YYYY-MM-DD"
+        },
+        "properties": {}
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Format",
+      "content": {
+        "attributes": {
+          "documentNumber": "\"[A-Z0-9]{9}\""
+        },
+        "properties": {}
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Format",
+      "content": {
+        "attributes": {
+          "photoImage": "image/jpeg"
+        },
+        "properties": {}
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Format",
+      "content": {
+        "attributes": {
+          "sex": "\"[A-Z]{1}\""
+        },
+        "properties": {}
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "documentType": "\"The word for \\\"passport\\\" in the language of the issuing State or organization.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "dateOfBirth": "\"Holder’s date of birth as recorded by the issuing State or organization.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "fullName": "\"Full name of the passport holder.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "height": "\"Recorded height of the passport holder.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "issuingState": "\"Name of the State or organization responsible for issuing the passport.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "photoImage": "\"Portrait image of the passport holder.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Information",
+      "content": {
+        "attributes": {
+          "sex": "\"Sex of the passport holder.\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "documentNumber": "\"Passport Number\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "documentType": "\"Document\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "dateOfBirth": "\"Date of birth\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "fullName": "\"Full name\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "height": "\"Height\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "issuingState": "\"Issuing State of organization (in full)\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "photoImage": "\"Portrait image\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Label",
+      "content": {
+        "attributes": {
+          "sex": "\"Sex\""
+        },
+        "properties": {
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Meta",
+      "content": {
+        "attributes": {},
+        "properties": {
+          "lang": "en",
+          "description": "\"Opis\""
+        }
+      }
+    },
+    {
+      "type": "Add",
+      "object_kind": "Unit"
+    }
+  ]
+}
