@@ -1,12 +1,10 @@
 mod instructions;
 mod error;
 
-use self::{instructions::{from::FromInstruction, add::AddInstruction}};
-use log::debug;
+use self::instructions::{from::FromInstruction, add::AddInstruction, remove::RemoveInstruction};
 use ocaast::{OCAAst, Command, CommandType};
 use crate::ocafile::error::Error;
 use core::convert::From;
-use oca_rs::state::oca::OCABox;
 use pest::Parser;
 
 
@@ -19,7 +17,7 @@ pub type Pair<'a> = pest::iterators::Pair<'a, Rule>;
 enum Instruction {
     From(FromInstruction),
     Add(AddInstruction),
-    //    Remove(RemoveInstruction),
+    Remove(RemoveInstruction),
     //    Alter(AlterInstruction),
 }
 
@@ -47,6 +45,7 @@ impl TryFromPair for Command {
         let instruction: Command = match record.as_rule() {
             Rule::from => FromInstruction::from_record(record, 0)?.into(),
             Rule::add => AddInstruction::from_record(record, 0)?.into(),
+            Rule::remove => RemoveInstruction::from_record(record, 0)?.into(),
             _ => return Err(Error::UnexpectedToken(record.to_string())),
         };
         Ok(instruction)

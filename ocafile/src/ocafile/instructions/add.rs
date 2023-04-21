@@ -1,10 +1,8 @@
-use crate::ocafile::{error::Error, Pair, Rule};
+use crate::ocafile::{error::Error, Pair, Rule, instructions::helpers};
 use indexmap::IndexMap;
 use log::{debug, info};
-use oca_rs::state::attribute::{self, AttributeType};
 use ocaast::{Command, CommandType, Content, NestedValue, ObjectKind};
-use core::panic;
-use std::str::FromStr;
+
 
 pub struct AddInstruction {}
 
@@ -20,7 +18,7 @@ impl AddInstruction {
             content = match object.as_rule() {
                 Rule::meta => {
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Meta));
-                    AddInstruction::extract_content(object)
+                    helpers::extract_content(object)
                 }
                 Rule::attribute => {
                     object_kind = Some(ObjectKind::CaptureBase);
@@ -32,7 +30,7 @@ impl AddInstruction {
                                 for attr in attr_pairs.into_inner() {
                                     debug!("Parsing attribute {:?}", attr);
                                     if let Some((key, value)) =
-                                        AddInstruction::extract_attribute(attr)
+                                        helpers::extract_attribute_key_pairs(attr)
                                     {
                                         debug!("Parsed attribute: {:?} = {:?}", key, value);
 
@@ -74,28 +72,27 @@ impl AddInstruction {
                 }
                 Rule::information => {
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Information));
-                    AddInstruction::extract_content(object)
+                    helpers::extract_content(object)
                 }
                 Rule::character_encoding => {
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::CharacterEncoding));
-                    AddInstruction::extract_content(object)
+                    helpers::extract_content(object)
                 }
                 Rule::character_encoding_props => {
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::CharacterEncoding));
-                    AddInstruction::extract_content(object)
-
+                    helpers::extract_content(object)
                 }
                 Rule::label => {
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Label));
-                    AddInstruction::extract_content(object)
+                    helpers::extract_content(object)
                 }
                 Rule::unit => {
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Unit));
-                    AddInstruction::extract_content(object)
+                    helpers::extract_content(object)
                 }
                 Rule::format => {
                     object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Format));
-                    AddInstruction::extract_content(object)
+                    helpers::extract_content(object)
                 }
                 Rule::flagged_attrs => {
                     object_kind = Some(ObjectKind::CaptureBase);
@@ -115,90 +112,6 @@ impl AddInstruction {
             object_kind: object_kind.unwrap(),
             content: content,
         })
-    }
-
-    fn extract_attribute(attr_pair: Pair) -> Option<(String, String)> {
-        let mut key = String::new();
-        let mut value = String::new();
-
-        debug!("Extract the attribute: {:?}", attr_pair);
-        for item in attr_pair.into_inner() {
-            match item.as_rule() {
-                Rule::key => {
-                    key = item.as_str().to_string();
-                }
-                Rule::attr_type => match AttributeType::from_str(&item.as_span().as_str()) {
-                    Ok(attr_type) => {
-                        debug!("Attribute type: {:?}", attr_type);
-                        value = attr_type.to_string();
-                    }
-                    Err(e) => {
-                        panic!("Invalid attribute type {:?}", e);
-                    }
-                },
-                Rule::key_value => {
-                    value = item.as_str().to_string();
-                }
-                _ => {
-                    panic!("Invalid attribute in {:?}", item.as_rule());
-                }
-            }
-        }
-        Some((key, value))
-    }
-
-    fn extract_content(object: Pair) -> Option<Content> {
-        let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
-        let mut attributes: IndexMap<String, NestedValue> = IndexMap::new();
-
-        debug!("Into the object: {:?}", object);
-        for attr in object.into_inner() {
-            debug!("Insite object: {:?}", attr);
-            match attr.as_rule() {
-                Rule::attr_key_pairs => {
-                    for attr in attr.into_inner() {
-                        debug!("Parsing attribute {:?}", attr);
-                        if let Some((key, value)) = AddInstruction::extract_attribute(attr) {
-                            debug!("Parsed attribute: {:?} = {:?}", key, value);
-                            // TODO find out how to parse nested objects
-                            attributes.insert(key, NestedValue::Value(value));
-                        } else {
-                            debug!("Skipping attribute");
-                        }
-                    }
-                }
-                Rule::prop_key_pairs => {
-                    for prop in attr.into_inner() {
-                        debug!("Parsing property {:?}", prop);
-                        if let Some((key, value)) = AddInstruction::extract_attribute(prop) {
-                            debug!("Parsed property: {:?} = {:?}", key, value);
-                            // TODO find out how to parse nested objects
-                            properties.insert(key, NestedValue::Value(value));
-                        } else {
-                            debug!("Skipping property");
-                        }
-                    }
-                }
-                Rule::lang => {
-                    debug!("Parsing language: {:?}", attr.as_str());
-                    properties.insert(
-                        "lang".to_string(),
-                        NestedValue::Value(attr.as_str().to_string()),
-                    );
-                }
-                _ => {
-                    debug!("Unexpected token: Invalid attribute in instruction {:?}", attr.as_rule());
-                    return None
-
-                }
-            }
-        }
-
-        Some(Content {
-            properties: Some(properties),
-            attributes: Some(attributes),
-        })
-
     }
 }
 

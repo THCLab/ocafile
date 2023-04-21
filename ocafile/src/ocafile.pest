@@ -77,7 +77,7 @@ commands = _{
 from = { ^"from" ~ ws* ~ from_said}
 add = { ^"add" ~ arg_ws* ~ oca_object }
 modify = { ^"modify" ~ char+ }
-remove = { ^"remove" ~ char+ }
+remove = { ^"remove" ~ arg_ws* ~ remove_oca_object }
 
 char = { ASCII_ALPHANUMERIC | "." | "-" | "_" | "/" }
 
@@ -88,6 +88,21 @@ oca_object = _{
     meta |
     label |
     attribute |
+    classification |
+    information |
+    unit |
+    character_encoding |
+    character_encoding_props |
+    format |
+    flagged_attrs
+  )
+}
+
+remove_oca_object = _{
+  (
+    remove_meta |
+    remove_label |
+    remove_attribute |
     classification |
     information |
     unit |
@@ -114,10 +129,15 @@ classification_value = { string | char+}
 
 //overlay_args = { ws* ~ ANY* }
 attribute = { ^"attribute" ~ attr_pairs+ }
+remove_attribute = { ^"attribute" ~ (arg_ws ~ attr_key)* }
+remove_meta = { ^"meta" ~ arg_ws ~ lang ~ (arg_ws ~ props_key ~ prop_key+)? }
+remove_label = { ^"label" ~ arg_ws ~ lang ~ (arg_ws ~ attrs_key ~ attr_key+)? }
 
-key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+
+attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+prop_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 key_value = ${ string | char+}
-key_pair = @{ key ~ "=" ~ key_value }
+key_pair = @{ attr_key ~ "=" ~ key_value }
 attr_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 prop_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 
@@ -136,7 +156,7 @@ attr_type = ${ ("Text" |
               "Array[Boolean]" |
               "Array[Binary]" |
               "Array[DateTime]" )}
-attr_pair = @{key ~ "=" ~ attr_type}
+attr_pair = @{attr_key ~ "=" ~ attr_type}
 attr_pairs = ${ (arg_ws ~ attr_pair)+}
 
 lang = ${ ASCII_ALPHA{2} ~ ("-" ~ ASCII_ALPHA{2})? }

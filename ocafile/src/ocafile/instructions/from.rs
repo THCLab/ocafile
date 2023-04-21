@@ -1,9 +1,7 @@
-use ocaast::{CommandType, Command, ObjectKind};
-use crate::ocafile::{
-    error::Error,
-    Pair, Rule,
-};
+use crate::ocafile::{error::Error, Pair, Rule};
+use indexmap::IndexMap;
 use log::debug;
+use ocaast::{Command, CommandType, Content, NestedValue, ObjectKind};
 use said::prefix::SelfAddressingPrefix;
 use std::str::FromStr;
 
@@ -29,12 +27,16 @@ impl FromInstruction {
 
         let said = SelfAddressingPrefix::from_str(said_str.unwrap().as_str()).unwrap();
         debug!("Using oca bundle from: {:?}", said);
+        let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
+        properties.insert("said".to_string(), NestedValue::Value(said.to_string()));
         Ok(Command {
             kind: CommandType::From,
-            object_kind: ObjectKind::CaptureBase,
-            content: None,
+            object_kind: ObjectKind::OCABundle,
+            content: Some(Content {
+                properties: Some(properties),
+                attributes: None,
+            }),
         })
-
     }
 }
 
@@ -42,7 +44,6 @@ impl FromInstruction {
 mod tests {
     use crate::ocafile::{error::Error, OCAfileParser, Pair, Rule};
     use pest::Parser;
-    use pretty_assertions::assert_eq;
 
     pub fn parse_direct<T, F>(input: &str, rule: Rule, func: F) -> Result<T, Error>
     where
@@ -60,14 +61,16 @@ mod tests {
 
     #[test]
     fn test_from_instruction() -> Result<(), Error> {
-
         // test vector with example instruction and boolean if they should be valid or not
         let instructions = vec![
-                ("FROM E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", true),
-                ("from E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", true),
-                ("from error", false),
-                ("from https://humancolossus.org/E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", false),
-            ];
+            ("FROM E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", true),
+            ("from E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co", true),
+            ("from error", false),
+            (
+                "from https://humancolossus.org/E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co",
+                false,
+            ),
+        ];
 
         for (instruction, is_valid) in instructions {
             let result = parse_direct(instruction, Rule::from, |p| {
@@ -76,18 +79,15 @@ mod tests {
 
             match result {
                 Ok(_) => {
-                    let said =
-                    SelfAddressingPrefix::from_str(instruction).unwrap();
-
-                    //assert_eq!(from, FromInstruction { said });
+                    let said = SelfAddressingPrefix::from_str(instruction).unwrap();
+                    
                 }
                 Err(e) => {
                     assert!(!is_valid, "Instruction should be invalid")
                 }
             }
-
         }
-        let from = parse_direct(
+        let _from = parse_direct(
             "from E2oRZ5zEKxTfTdECW-v2Q7bM_H0OD0ko7IcCwdo_u9co",
             Rule::from,
             |p| FromInstruction::from_record(p, 0),
