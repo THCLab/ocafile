@@ -1,8 +1,7 @@
-use crate::ocafile::{error::Error, Pair, Rule, instructions::helpers};
+use crate::ocafile::{error::Error, instructions::helpers, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
-use ocaast::{Command, CommandType, Content, NestedValue, ObjectKind};
-
+use ocaast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType};
 
 pub struct AddInstruction {}
 
@@ -17,7 +16,7 @@ impl AddInstruction {
         for object in record.into_inner() {
             content = match object.as_rule() {
                 Rule::meta => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Meta));
+                    object_kind = Some(ObjectKind::Overlay(ocaast::ast::OverlayType::Meta));
                     helpers::extract_content(object)
                 }
                 Rule::attribute => {
@@ -71,27 +70,27 @@ impl AddInstruction {
                     })
                 }
                 Rule::information => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Information));
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Information));
                     helpers::extract_content(object)
                 }
                 Rule::character_encoding => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::CharacterEncoding));
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding));
                     helpers::extract_content(object)
                 }
                 Rule::character_encoding_props => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::CharacterEncoding));
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding));
                     helpers::extract_content(object)
                 }
                 Rule::label => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Label));
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Label));
                     helpers::extract_content(object)
                 }
                 Rule::unit => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Unit));
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Unit));
                     helpers::extract_content(object)
                 }
                 Rule::format => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::OverlayType::Format));
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Format));
                     helpers::extract_content(object)
                 }
                 Rule::flagged_attrs => {

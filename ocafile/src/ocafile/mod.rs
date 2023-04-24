@@ -2,7 +2,7 @@ mod instructions;
 mod error;
 
 use self::instructions::{from::FromInstruction, add::AddInstruction, remove::RemoveInstruction};
-use ocaast::{OCAAst, Command, CommandType};
+use ocaast::ast::{OCAAst, Command, CommandType};
 use crate::ocafile::error::Error;
 use core::convert::From;
 use pest::Parser;

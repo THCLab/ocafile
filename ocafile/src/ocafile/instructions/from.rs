@@ -1,7 +1,7 @@
 use crate::ocafile::{error::Error, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
-use ocaast::{Command, CommandType, Content, NestedValue, ObjectKind};
+use ocaast::ast::{Command, CommandType, Content, NestedValue, ObjectKind};
 use said::prefix::SelfAddressingPrefix;
 use std::str::FromStr;
 
@@ -80,7 +80,7 @@ mod tests {
             match result {
                 Ok(_) => {
                     let said = SelfAddressingPrefix::from_str(instruction).unwrap();
-                    
+
                 }
                 Err(e) => {
                     assert!(!is_valid, "Instruction should be invalid")
