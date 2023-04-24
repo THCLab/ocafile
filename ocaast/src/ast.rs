@@ -9,7 +9,7 @@ pub struct OCAAst {
     pub commands: Vec<Command>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Clone)]
 pub struct Command {
     #[serde(rename = "type")]
     pub kind: CommandType,
@@ -18,7 +18,7 @@ pub struct Command {
     pub content: Option<Content>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Clone)]
 pub enum CommandType {
     Add,
     Remove,
@@ -26,7 +26,7 @@ pub enum CommandType {
     From,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ObjectKind {
     CaptureBase,
     OCABundle,
@@ -55,7 +55,7 @@ pub enum AttributeType {
     ArrayReference,
 }
 
-#[derive(Debug, PartialEq, Serialize, Display)]
+#[derive(Debug, PartialEq, Serialize, Display, Clone)]
 pub enum OverlayType {
     Label,
     Information,
@@ -78,7 +78,7 @@ pub enum OverlayType {
     Sensitivity,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Clone)]
 pub struct Content {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedValue>>,
@@ -86,7 +86,7 @@ pub struct Content {
     pub properties: Option<IndexMap<String, NestedValue>>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Clone)]
 #[serde(untagged)]
 pub enum NestedValue {
     Value(String),
